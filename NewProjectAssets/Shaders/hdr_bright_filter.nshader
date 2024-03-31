@@ -1,0 +1,32 @@
+@VERTEX
+#version 330 core
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec2 uv;
+
+out vec2 TexCoords;
+
+void main()
+{
+    TexCoords = uv;
+    gl_Position = vec4(position, 1.0);
+}
+@VERTEXEND@FRAGMENT
+#version 330 core
+out vec4 FragColor;
+
+in vec2 TexCoords;
+
+uniform sampler2D hdrBuffer;
+uniform float bloomThreshold;
+
+void main()
+{
+    vec4 hdrColor = texture(hdrBuffer, TexCoords);
+    float brightness = dot(hdrColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+	if(brightness < 1.2)
+		hdrColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+    FragColor = vec4(hdrColor.rgb, 1.0);
+}
+@FRAGMENTEND
