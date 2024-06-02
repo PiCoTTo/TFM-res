@@ -54,7 +54,6 @@ uniform vec3 directionalLightPos;
 uniform vec3 directionalLightColor;
 uniform float directionalLightIntensity;
 uniform mat4 directionalLightSpaceMatrix;
-uniform mat4 InvProjection;
 
 // Lights
 struct Light {
@@ -74,7 +73,6 @@ uniform Light lights[NR_LIGHTS];
 uniform vec3 viewPos;
 uniform mat4 transform;
 uniform mat4 view;
-uniform int currentLights;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -154,19 +152,6 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 fragPosWorldSpace, vec3 fra
         shadow = 0.0;
         
     return shadow;
-}
-
-// Reconstruct view space position from depth
-vec3 ViewPositionFromDepth(vec2 texcoord, float depth)
-{
-  // Get x/w and y/w from the viewport position
-  vec3 projectedPos = vec3(texcoord, depth) * 2.0f - 1.0f;;
-
-  // Transform by the inverse projection matrix
-  vec4 positionVS = InvProjection * vec4(projectedPos, 1.0f);
-
-  // Divide by w to get the view-space position
-  return positionVS.xyz / positionVS.w;
 }
 
 void main()
