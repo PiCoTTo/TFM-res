@@ -1,5 +1,6 @@
 @VERTEX
-#version 330 core
+#version 460 core
+
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 uv;
@@ -10,10 +11,16 @@ out vec3 FragPos;
 out vec2 TexCoords;
 out vec3 Normal;
 out mat3 TBN;
+out vec4 v_curPos;
+out vec4 v_oldPos;
 
 uniform mat4 transform;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 oldViewProjUnjittered;
+uniform mat4 viewProjUnjittered;
+
+uniform bool fsr2Enabled;
 
 void main()
 {
@@ -29,22 +36,34 @@ void main()
     Normal = normalMatrix * normal;
 
     gl_Position = projection * view * worldPos;
+	
+	if(fsr2Enabled)
+	{
+		v_curPos = viewProjUnjittered * vec4(position, 1.0);
+		v_oldPos = oldViewProjUnjittered * vec4(position, 1.0);
+	}
 }
 @VERTEXEND@FRAGMENT
-#version 330 core
+#version 460 core
+
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec3 gAlbedo;
 layout (location = 3) out vec3 gARM;
+layout (location = 4) out vec2 gMotion;
 
 in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
 in mat3 TBN;
+in vec4 v_curPos;
+in vec4 v_oldPos;
 
 uniform vec3 viewPos;
 uniform mat4 transform;
 uniform mat4 view;
+
+uniform bool fsr2Enabled;
 
 uniform sampler2D albedoMap;
 uniform sampler2D normalMap;
@@ -65,5 +84,11 @@ void main()
     gAlbedo = texture(albedoMap, texCoord).rgb;
     
     gARM = texture(armMap, texCoord).rgb;
+	
+	if(fsr2Enabled)
+	{
+		// motion in uv space [0, 1]
+		gMotion = ((v_oldPos.xy / v_oldPos.w) - (v_curPos.xy / v_curPos.w)) * 0.5;	
+	}
 }
 @FRAGMENTEND
